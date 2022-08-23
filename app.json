@@ -85,12 +85,6 @@
   "image": "heroku/ruby",
   "addons": [
     {
-      "plan": "heroku-redis"
-    },
-    {
-      "plan": "bugsnag:tauron2"
-    },
-    {
       "plan": "heroku-postgresql",
       "options": {
         "version": "11"
@@ -112,7 +106,6 @@
         "test": "bundle exec rspec -t browser"
       },
       "addons": [
-        "heroku-redis",
         "heroku-postgresql"
       ],
       "buildpacks": [
