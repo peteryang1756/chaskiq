@@ -1,0 +1,61 @@
+
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:13
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      RAILS_ENV: test
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/${{ github.run_id }}
+      REDIS_URL: redis://localhost:6379/1
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: 3.0  # 选择适合你的Ruby版本
+        bundler-cache: true
+
+    - name: Install PostgreSQL client
+      run: sudo apt-get install libpq-dev
+
+
+    - name: Setup database
+      run: |
+        cp config/database.yml.ci config/database.yml
+        bundle exec rails db:create db:schema:load --trace
+
+    - name: Precompile assets
+      run: bundle exec rails assets:precompile
+
+    - name: Run tests
+      run: bundle exec rspec
